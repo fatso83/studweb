@@ -24,19 +24,33 @@ s = requests.Session()
 h = HTMLParser();
 studweb = 'https://studweb.uio.no'
 
-class Result:
-    def __init__(self, code, desc, grade):
-        self.subject_code = code
-        self.subject_long_desc = desc
-        self.grade = grade
+class SubjectResult:
+    def __init__(self, code, name, grade, semester):
+        self.__code = code
+        self.__name = name
+        self.__grade = grade
+        self.__semester = semester
+
+        import hashlib
+        self.__bytes = self.__str__().encode('utf8')
+        self.__hash = hashlib.md5(self.__bytes).hexdigest()
+
+    # for use in sets and as keys in dicts
+    def __hash__(self):
+        return int(self.__hash, 16)
+
+    # as str
+    def __str__(s):
+        return " ".join([s.__code, s.__name, s.__grade, s.__semester])
 
     # for comparison
-    def __str__(self):
-        return str(self.__dict__)
+    def __eq__(s, o): 
+        return s.__code == o.__code \
+                and s.__grade == o.__grade \
+                and s.__semester == o.__semester
 
-    def __eq__(self, other): 
-        return self.__dict__ == other.__dict__
-
+    def asBytes(self):
+        return self.__bytes;
 
 def usage():
     print("USAGE:", sys.argv[0], "<social security number> <studweb pin code>")
@@ -82,56 +96,71 @@ def init_session(ssn, pin_code):
 def logout(html_page):
     if not html_page: 
         raise Exception("Missing legal string argument")
+
     soup = BeautifulSoup(html_page)
     link = soup.find_all('a',text=re.compile('Logg ut'))
     check(link, "Could not find <a> tag with text \"Logg ut\"")
     logoutUrl =  studweb + link[0]['href']
     #return logoutUrl 
     return s.get( logoutUrl )
-    
+
 def get_url_to_result_page(start_page):
-        soup = BeautifulSoup(start_page)
-        link = soup.find_all('a',text=re.compile('Se opplysninger om deg'))
-        check(link, "Could not find <a> tag with text \"Se opplysninger om deg\"")
-        r = s.get(studweb + link[0]['href'])
-        soup = BeautifulSoup(r.content)
-        link = soup.find_all("a", title="Se dine resultater")
-        check(link, "Could not find <a> tag with title \"Se dine resultater\"")
-        return studweb + link[0]['href']
-        
+    soup = BeautifulSoup(start_page)
+    link = soup.find_all('a',text=re.compile('Se opplysninger om deg'))
+    check(link, "Could not find <a> tag with text \"Se opplysninger om deg\"")
+    r = s.get(studweb + link[0]['href'])
+
+    soup = BeautifulSoup(r.content)
+    link = soup.find_all("a", title="Se dine resultater")
+    check(link, "Could not find <a> tag with title \"Se dine resultater\"")
+
+    return studweb + link[0]['href']
+
 
 def check(find_result, error_msg):
-        if not find_result:
-                raise Exception(error_msg)
+    if not find_result:
+        raise Exception(error_msg)
 
-def parse_result_page(html):
-    soup = BeautifulSoup(results_html)
+def parse_result(html):
+    soup = BeautifulSoup(html)
 
     # parse the results table
     result_table = soup.table.table
     headers = result_table.find_all("th")
-    
-    index={}
-    for s in ['Semester', 'Emnekode', 'Resultat']:
+
+    index_lookup={}
+    for s in ['Semester', 'Emnekode', 'Emnenavn', 'Resultat']:
         hits = [ i for i, th in enumerate(headers) if th.text.find(s) >= 0 ]
         assert len(hits) > 0, "Did not find a header with the name %s" % s
-        index[s]=hits[0]
+        index_lookup[s]=hits[0]
+
+    assert len(index_lookup.values()) == 4, 'Page layout has changed!'
 
     # only find rows with non-blank subject code
     relevant_trs = [tr 
-		    for tr in result_table.find_all('tr')[1:] #Skip the first row with headers 
-                    for i,c in enumerate(tr.children) 
-                    if i == index['Emnekode'] and c.text.strip()]
-
+            for tr in result_table.find_all('tr')[1:] #Skip the first row with headers 
+            for i,c in enumerate(tr.children)
+            if i == index_lookup['Emnekode'] and c.text.strip()]
 
     results=[]
-    value_key = [(v,k) for k,v in index]
+
     for tr in relevant_trs:
-	    result = {}
-	    for i,c in enumerate(tr.find_all('td')):
-		    if i in value_key:
-			    result[key]=c.text
-	    results.append(result)
+        tmp = {}
+        for i,c in enumerate(tr.find_all('td')):
+            if i in index_lookup.values():
+                text = c.text.strip()
+                if i == index_lookup['Emnekode']:
+                    tmp['code'] = text
+                if i == index_lookup['Semester']:
+                    tmp['semester'] = text
+                if i == index_lookup['Emnenavn']:
+                    tmp['name'] = text
+                if i == index_lookup['Resultat']:
+                    tmp['grade'] = text
+        results.append( SubjectResult( \
+                    tmp['code'], tmp['name'], tmp['grade'], tmp['semester'] ))
+
+    return results
 
 def debug(o):
     print(str(o).encode('utf-8'))
@@ -152,4 +181,4 @@ if __name__ == '__main__':
     f = open("results.html")
 
     for line in f:
-	    results_html += line
+        results_html += line
