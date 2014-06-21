@@ -18,20 +18,30 @@ class TestStudweb(unittest.TestCase):
         with codecs.open('testdata/v2013_uio.html', 'r', encoding='utf-8') as f:
             html = f.read();
 
-        result_set = studweb.parse_result(html)
+        parser = ResultParser('Semester')
+        result_set = parser.parse_result(html)
         expected_set = result_set_uio_v13()
 
         diff = (expected_set.difference(result_set));
         self.assertEqual(diff, set())
 
     def test_can_parse_ntnu2014(self):
-        with codecs.open('testdata/NTNU_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8') as f:
+        with codecs.open('testdata/NTNU_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
             html = f.read();
 
-        result_set = studweb.parse_result(html)
+        parser = ResultParser('Termin')
+        result_set = parser.parse_result(html)
 
-        self.assertEqual(len(result_set), 54)
+        self.assertEqual(len(result_set), 55)
 
+    def test_can_parse_uio2014(self):
+        with codecs.open('testdata/UIO_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
+            html = f.read();
+
+        parser = ResultParser('Semester')
+        result_set = parser.parse_result(html)
+
+        self.assertEqual(len(result_set), 7)
 
 def result_set_uio_v13():
     results = set();

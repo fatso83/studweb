@@ -121,46 +121,58 @@ def check(find_result, error_msg):
     if not find_result:
         raise Exception(error_msg)
 
-def parse_result(html):
-    soup = BeautifulSoup(html)
 
-    # parse the results table
-    result_table = soup.table.table
-    headers = result_table.find_all("th")
+class ResultParser:
+    semesterTerm = None 
 
-    index_lookup={}
-    for s in ['Semester', 'Emnekode', 'Emnenavn', 'Resultat']:
-        hits = [ i for i, th in enumerate(headers) if th.text.find(s) >= 0 ]
-        assert len(hits) > 0, "Did not find a header with the name %s" % s
-        index_lookup[s]=hits[0]
+    def __init__(self, term):
+        self.semesterTerm = term 
 
-    assert len(index_lookup.values()) == 4, 'Page layout has changed!'
+    def parse_result(self, html):
+        soup = BeautifulSoup(html)
 
-    # only find rows with non-blank subject code
-    relevant_trs = [tr 
-            for tr in result_table.find_all('tr')[1:] #Skip the first row with headers 
-            for i,c in enumerate(tr.children)
-            if i == index_lookup['Emnekode'] and c.text.strip()]
+        # parse the results table
+        result_table = soup.table.table
+        headers = result_table.find_all("th")
 
-    results=[]
+        index_lookup={}
+        for s in [self.semesterTerm, 'Emnekode', 'Emnenavn', 'Resultat']:
+            hits = [ i for i, th in enumerate(headers) if th.text.find(s) >= 0 ]
+            assert len(hits) > 0, "Did not find a header with the name %s" % s
+            index_lookup[s]=hits[0]
 
-    for tr in relevant_trs:
-        tmp = {}
-        for i,c in enumerate(tr.find_all('td')):
-            if i in index_lookup.values():
-                text = c.text.strip()
-                if i == index_lookup['Emnekode']:
-                    tmp['code'] = text
-                if i == index_lookup['Semester']:
-                    tmp['semester'] = text
-                if i == index_lookup['Emnenavn']:
-                    tmp['name'] = text
-                if i == index_lookup['Resultat']:
-                    tmp['grade'] = text
-        results.append( SubjectResult( \
-                    tmp['code'], tmp['name'], tmp['grade'], tmp['semester'] ))
+        assert len(index_lookup.values()) == 4, 'Page layout has changed!'
 
-    return results
+        # only find rows with non-blank subject code
+        relevant_trs = [tr 
+                for tr in result_table.find_all('tr')[1:-2] #Skip the first row with headers 
+                for i,c in enumerate(tr.children)
+                if i == index_lookup['Emnekode'] and c.text.strip()]
+
+        results=[]
+
+        for tr in relevant_trs:
+            tmp = {}
+            for i,c in enumerate(tr.find_all('td')):
+                if i in index_lookup.values():
+                    text = c.text.strip()
+                    if i == index_lookup['Emnekode']:
+                        tmp['code'] = text
+                    if i == index_lookup[self.semesterTerm]:
+                        tmp['semester'] = text
+                    if i == index_lookup['Emnenavn']:
+                        tmp['name'] = text
+                    if i == index_lookup['Resultat']:
+                        tmp['grade'] = text
+            try: 
+                results.append( SubjectResult( \
+                        tmp['code'], tmp['name'], tmp['grade'], tmp['semester'] ))
+            except KeyError as e: 
+                print("feil skjedde")
+                print(e)
+                print(tr)
+
+        return results
 
 def debug(o):
     print(str(o).encode('utf-8'))
@@ -178,7 +190,7 @@ if __name__ == '__main__':
     # results_html = soup.prettify()
     #r= logout(r.content)
     results_html = ""
-    f = open("results.html")
+    f = open("test/testdata/results_uio_v2013.html")
 
     for line in f:
         results_html += line
