@@ -2,4 +2,4 @@
 # by executing `crontab cron_example`
 
 # Run every 30 minutes and prevent output from being mailed
-*/30 * * * * ~carlerik/src/studweb/cronscript.sh
+*/30 * * * * ~carlerik/src/studweb/cronscript.sh --quiet
