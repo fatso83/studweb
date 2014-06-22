@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 ################################################################################
-# Tests for studweb
+# Tests for studweb - testdata held back for privacy reasons ...
 # Carl-Erik Kopseng <carlerik@ifi.uio.no>
 ################################################################################
 import unittest, re, codecs;
-from studweb import * #SubjectResult
+from studweb import * 
 import studweb
 
 class TestStudweb(unittest.TestCase):
@@ -85,7 +85,5 @@ def result_set_uio_v13():
     return results
 
 if __name__ == "__main__":    
-#  import locale
-#  locale.setlocale(locale.LC_ALL, 'nb_NO')
 
   unittest.main()
