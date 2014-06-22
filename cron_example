@@ -1,5 +1,5 @@
 # Put the content of this file into your crontab
-# by executing `crontab -e cron_example`
+# by executing `crontab cron_example`
 
 # Run every 30 minutes and prevent output from being mailed
-*/30 * * * * ~carlerik/src/studweb/cronscript.sh > /dev/null
+*/30 * * * * ~carlerik/src/studweb/cronscript.sh

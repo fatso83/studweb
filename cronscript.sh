@@ -1,9 +1,8 @@
 #!/bin/sh
-# To run using cron, run `crontab -e` and input the following line 
-# * * * * * ~carlerik/src/studweb/studweb.py
+# To run using cron, simply type `crontab cron_example`
 PYTHONPATH=~carlerik/lib/python-2.7/site-packages
 PYTHON=~carlerik/bin/python2.7
 SCRIPT=$(dirname $0)/studweb.py
 
 # Run script
-$PYTHON $SCRIPT 
+$PYTHON $SCRIPT --quiet
