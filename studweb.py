@@ -15,14 +15,14 @@
 # - writing the result to file for later comparison
 ##
 
-import requests, re, sys, os, datetime
+import requests, re, sys, os, datetime, codecs
 from bs4 import BeautifulSoup
 from os.path import expanduser
 
 config = None
-studweb = None # url of studweb
-s = None # The session object that persists cookies and default values across requests
-r = None # Request object passed around
+studweb = None  # url of studweb
+s = None        # The session object that persists cookies and default values across requests
+r = None        # Request object passed around
 parser = None
 latest_html = None
 
@@ -51,12 +51,12 @@ class Mailer:
         import smtplib
         from email.mime.text import MIMEText
 
-        msg = MIMEText(text)
+        msg = MIMEText(text, _charset='utf8')
         msg['Subject'] = subject
         msg['From'] = self.from_addr
         msg['To'] = self.to_addr
 
-        s = smtplib.SMTP_SSL(self.smtp_server)
+        s = smtplib.SMTP_SSL(self.smtp_server, timeout=10)
         s.login(self.smtp_username, self.smtp_password)
         s.sendmail(self.from_addr, self.to_addr, msg.as_string())
         s.quit()
@@ -65,7 +65,12 @@ class Mailer:
         return str(self.__dict__)
 
 class SubjectResult:
+
     def __init__(self, code, name, grade, semester):
+        """Expects all strings to be unicode
+        This will be true if given input from BeautifulSoup, as
+        as internal data structures are using unicode"
+        """
         self.__code = code
         self.__name = name
         self.__grade = grade
@@ -81,7 +86,7 @@ class SubjectResult:
 
     # as str
     def __str__(s):
-        return " ".join([s.__code, s.__name, s.__grade, s.__semester])
+        return u" ".join([s.__code, s.__name, s.__grade, s.__semester])
 
     # for comparison
     def __eq__(s, o): 
@@ -92,6 +97,11 @@ class SubjectResult:
     def asBytes(self):
         return self.__bytes;
 
+    def asUnicode(self):
+        s = self.__str__()
+        assert is_unicode_str(s)
+        return s
+
 class ResultParser:
     semesterTerm = None 
 
@@ -100,6 +110,8 @@ class ResultParser:
 
     def parse(self, html):
         assert html != None
+        assert is_unicode_str(html)
+
         soup = BeautifulSoup(html)
 
         # parse the results table
@@ -141,9 +153,17 @@ class ResultParser:
             except KeyError as e: 
                 print("feil skjedde")
                 print(e)
-                _print(tr)
+                print(tr)
 
         return results
+
+def is_unicode_str(s):
+    if sys.version_info >= (3,0,0):
+        # for Python 3
+        return not isinstance(s, bytes)
+    else: 
+        # for Python 2 
+        return isinstance(s, unicode)
 
 def init_session():
     #user_agent = "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36" 
@@ -157,6 +177,7 @@ def init_session():
     s = requests.Session()
     r = s.get(studweb)
     soup = BeautifulSoup(r.content)
+
     form = soup.select("form[name=fnrForm]")[0]
     inputs = soup.select("form[name=fnrForm] input") 
 
@@ -224,8 +245,9 @@ def new_results():
 
 def old_results():
     if os.path.isfile( data_file ):
-        f = open( data_file, 'r', encoding='utf8')
+        f = codecs.open( data_file, 'r', encoding='utf8')
         previous_html = f.read()
+        f.close()
         return parser.parse(previous_html)
     return set()
 
@@ -235,22 +257,19 @@ def latest_results():
     return parser.parse(latest_html)
 
 def store(html):
-    f = open( data_file, 'w', encoding='utf8', errors='ignore')
+    f = codecs.open( data_file, 'w', encoding='utf8', errors='ignore')
     f.write(html)
     f.close()
 
 def fetch_html():
     global r, s
 
-    try : 
+    try: 
         r = init_session()
         r = s.get(get_url_to_result_page(r.content))
         soup = BeautifulSoup(r.content)
         results_html = soup.prettify()
-    except Exception as e : 
-        print('Caught error!', e)
-        sys.exit(1)
-    finally :
+    finally:
         try: 
             r = logout(r.content)
         except:
@@ -263,18 +282,33 @@ def modification_date(filename):
     t = os.path.getmtime(filename)
     return datetime.datetime.fromtimestamp(t)
 
-def _print(o):
-    print(str(o).encode('utf-8'))
+# Standardize printing of text for Python 2 and Python 3
+def _print(s):
+    assert is_unicode_str(s), "Not unicode: " + s
+    try:
+        if sys.version_info < (3,0,0):
+            write = sys.stdout.write
+        else: 
+            write = sys.stdout.buffer.write
+        
+        write((s + '\n').encode('utf-8'))
+    except UnicodeEncodeError as e:
+        # Debug info
+        print("Got error for string that was guaranteed to be unicode")
+        print([hex(ord(c)) for c in s])
+        print(e)
+        print(dir(e))
+        sys.exit(1)
 
 def read_config():
     config = {}
-    try:
+    if os.path.isfile(settings_file):
         fp = open(settings_file, 'r')
         for l in fp.readlines():
             k, v = [s.strip() for s in l.split("=")]
             config[k] = v
         fp.close()
-    except FileNotFoundError:
+    else:
         print("No config file found")
         fp = open(settings_file, 'w')
         fp.write(example_config)
@@ -287,20 +321,27 @@ def read_config():
 
 if __name__ == '__main__':
 
+    body = ""
+    subject = None
     config = read_config()
-
     mailer = Mailer(config)
 
-    output = ""
-
     new = new_results()
-    body = ""
     if new:
-        subject = "Found new results since last check!"
-        for r in new:
-            body += '\n' + str(r)
-        store(latest_html)
-        mailer.send(subject, body)
-    else:
-        subject = "No new results since " + str(modification_date(data_file))
+        subject = u"Found new results since last check!"
+        _print(subject)
+        for result in new:
+            s = result.asUnicode()
+            body += u"\n - " + s
 
+        _print(u"\nNew results:" + body)
+
+        _print(u"\nStoring results ...")
+        store(latest_html)
+        _print(u"\nMailing results to " + config['to_addr'])
+        mailer.send(subject, body)
+        _print(u"\nMail sent successfully")
+    else:
+        _print(u"No new results since " + str(modification_date(data_file)))
+
+    sys.exit(0)
