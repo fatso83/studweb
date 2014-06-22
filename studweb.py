@@ -50,6 +50,13 @@ to_addr = ola@nordmann.no
 class Mailer:
 
     def __init__(self, config):
+        needed = ['from_addr', 'to_addr', 'smtp_password', 'smtp_username']
+        missing = set(needed).difference(config)
+
+        if missing:
+            print("\nMissing email config values!\n\t " + ",".join(missing))
+            sys.exit(1)
+
         self.__dict__.update(config);
 
     def send(self, subject, text):
