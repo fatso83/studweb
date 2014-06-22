@@ -3,7 +3,10 @@
 # Program to alert you when your grades have arrived in StudWeb
 # @author Carl-Erik Kopseng <carlerik@ifi.uio.no>
 # @date June 20 2013
-# Requires: Python 3 (can easily be changed to use Python 2)
+#
+# See README.md for installation and usage examples
+# Also just testrun the program with `python studweb.py` to 
+# see options
 #
 # Inspired by studweb.py by Sindre Frøyn <sindrf@ifi.uio.no>, 2009
 #
@@ -35,6 +38,8 @@ example_config = """\
 ssn = 12345678901
 pin = 1234
 studweb = https://studweb.uio.no
+"""
+example_mail_config = """
 smtp_server = smtp.uio.no
 smtp_username = ola.nordmann
 smtp_password = p4ssw0rd
@@ -301,35 +306,62 @@ def _print(s):
         sys.exit(1)
 
 def read_config():
-    config = {}
+    config = None
     if os.path.isfile(settings_file):
+        config = {}
         fp = open(settings_file, 'r')
         for l in fp.readlines():
             k, v = [s.strip() for s in l.split("=")]
             config[k] = v
         fp.close()
-    else:
-        print("No config file found")
-        fp = open(settings_file, 'w')
-        fp.write(example_config)
-        fp.close()
-        print("Example config written to " + settings_file)
-        print("Change values as necessary")
-        sys.exit(1)
 
     return config
 
+def write_example_config(include_mail_config):
+    fp = open(settings_file, 'w')
+    fp.write(example_config)
+    if include_mail_config: 
+            fp.write(example_mail_config)
+    fp.close()
+
+    print("Example config written to " + settings_file)
+    print("Change values as necessary")
+
+def send_mail(subject, body, config):
+    mailer = Mailer(config)
+
+    _print(u"\nMailing results to " + config['to_addr'])
+    mailer.send(subject, body)
+    _print(u"\nMail sent successfully")
+
+
 if __name__ == '__main__':
+
+    import argparse
+    parser = argparse.ArgumentParser(description="Retreive studweb results")
+    parser.add_argument("--mail", help = "Use the built-in mailer instead of relying on cron to mail the results", action="store_true")
+    parser.add_argument("--quiet", help = "Prevent output when there are no new results", action="store_true")
+    parser.add_argument("--config", help = "Creates a default config file. Pass --mail to add email values", action="store_true")
+    args = parser.parse_args()
 
     body = ""
     subject = None
     config = read_config()
-    mailer = Mailer(config)
+
+    if not config:
+
+        if args.config:
+            write_example_config(args.mail)
+        else:
+            print("No config file found. Try passing --help for more info")
+
+        sys.exit(1)
 
     new = new_results()
     if new:
         subject = u"Found new results since last check!"
         _print(subject)
+
         for result in new:
             s = result.asUnicode()
             body += u"\n - " + s
@@ -338,10 +370,11 @@ if __name__ == '__main__':
 
         _print(u"\nStoring results ...")
         store(latest_html)
-        _print(u"\nMailing results to " + config['to_addr'])
-        mailer.send(subject, body)
-        _print(u"\nMail sent successfully")
-    else:
+
+        if args.mail:
+            send_mail(subject, body, config)
+
+    elif not args.quiet:
         _print(u"No new results since " + str(modification_date(data_file)))
 
     sys.exit(0)
