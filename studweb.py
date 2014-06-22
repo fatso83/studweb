@@ -14,11 +14,11 @@
 # - logging into studweb, 
 # - parsing the results 
 # - comparing those with the previously fetched results
-# - printing all results or just a formatted diff (if run with -d) to screen 
-# - writing the result to file for later comparison
+# - printing the difference to screen 
+# - writing the results page to file for later comparison
 ##
 
-import requests, re, sys, os, datetime, codecs
+import requests, re, sys, os, datetime, codecs, stat
 from bs4 import BeautifulSoup
 from os.path import expanduser
 
@@ -308,6 +308,8 @@ def _print(s):
 def read_config():
     config = None
     if os.path.isfile(settings_file):
+        check_permissions()
+
         config = {}
         fp = open(settings_file, 'r')
         for l in fp.readlines():
@@ -324,6 +326,9 @@ def write_example_config(include_mail_config):
             fp.write(example_mail_config)
     fp.close()
 
+    # Make the file readable and writable by user only
+    os.chmod(settings_file, stat.S_IRUSR | stat.S_IWUSR)
+
     print("Example config written to " + settings_file)
     print("Change values as necessary")
 
@@ -334,6 +339,13 @@ def send_mail(subject, body, config):
     mailer.send(subject, body)
     _print(u"\nMail sent successfully")
 
+def check_permissions():
+    mode = os.stat(settings_file).st_mode
+
+    if mode & stat.S_IROTH or mode & stat.S_IRGRP:
+        print("The settings file should only be readable by the user!")
+        print("Use `chmod 400 ~/.studweb.conf` to make it private")
+        sys.exit(1)
 
 if __name__ == '__main__':
 
