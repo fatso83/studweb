@@ -9,6 +9,12 @@ Two options, depending on whether you are a student at UiO or not
 ## UiO users
 I have tried to make it as simple as possible for users at the University of Oslo by creating a script (`cronscript.sh`) that points at a valid Python 2.7 installation directory with all requirements pre-installed and executes the script that resides in my home directory. Simply copy-paste the following commands into a terminal, one-by-one.
 
+    # log in to safir if you are not already logged no
+    # use the Putty program on Windows to do this
+    ssh safir.ifi.uio.no
+    
+    # all commands from this point on assume you are logged in to ifi
+    
     # generate config file 
     ~carlerik/src/studweb/cronscript.sh --config
     
