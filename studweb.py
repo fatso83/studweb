@@ -33,6 +33,7 @@ latest_html = None
 home = expanduser("~")
 settings_file = home + '/.studweb.conf'
 data_file = home + '/.studweb.dat'
+error_file = home + '/.studweb.latest_error.html'
 
 example_config = """\
 ssn = 12345678901
@@ -222,7 +223,7 @@ def logout(html_page):
 
     soup = BeautifulSoup(html_page)
     link = soup.find_all('a',text=re.compile('Logg ut'))
-    check(link, "Could not find <a> tag with text \"Logg ut\"")
+    check(link, "Could not find <a> tag with text \"Logg ut\"", soup.prettify())
     logoutUrl =  studweb + link[0]['href']
 
     return s.get( logoutUrl )
@@ -232,18 +233,30 @@ def get_url_to_result_page(start_page):
 
     soup = BeautifulSoup(start_page)
     link = soup.find_all('a',text=re.compile('Se opplysninger om deg'))
-    check(link, "Failed logging in. Check the configuration settings at " + settings_file)
+    try: 
+        check(link, "Failed logging in. Check the configuration settings at " + settings_file, soup.prettify())
+    except Exception as e:
+        # try to get the error message
+        error_msg = soup.select("#alert-box ul li")
+        if error_msg: 
+            print_error("Caught error when trying to log in: \n" + error_msg[0].get_text())
+            sys.exit(1)
+        else: raise e
+
     r = s.get(studweb + link[0]['href'])
 
     soup = BeautifulSoup(r.content)
     link = soup.find_all("a", title="Se dine resultater")
-    check(link, "Could not find <a> tag with title \"Se dine resultater\"")
+    check(link, "Could not find <a> tag with title \"Se dine resultater\"", soup.prettify())
 
     return studweb + link[0]['href']
 
 
-def check(find_result, error_msg):
+def check(find_result, error_msg, failing_html):
     if not find_result:
+        f = codecs.open( error_file, 'w', encoding='utf8')
+        f.write( failing_html )
+        f.close()
         raise Exception(error_msg)
 
 def diff(old, new):
@@ -297,20 +310,16 @@ def modification_date(filename):
 # Standardize printing of text for Python 2 and Python 3
 def _print(s):
     assert is_unicode_str(s), "Not unicode: " + s
-    try:
-        if sys.version_info < (3,0,0):
-            write = sys.stdout.write
-        else: 
-            write = sys.stdout.buffer.write
-        
-        write((s + '\n').encode('utf-8'))
-    except UnicodeEncodeError as e:
-        # Debug info
-        print("Got error for string that was guaranteed to be unicode")
-        print([hex(ord(c)) for c in s])
-        print(e)
-        print(dir(e))
-        sys.exit(1)
+    if sys.version_info < (3,0,0):
+        write = sys.stdout.write
+    else: 
+        write = sys.stdout.buffer.write
+    
+    write((s + '\n').encode('utf-8'))
+
+def print_error(s):
+    sys.stderr.write((s + '\n').encode('utf-8'))
+    sys.stderr.flush()
 
 def read_config():
     config = None
