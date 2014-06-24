@@ -79,10 +79,10 @@ Try running `python studweb.py -h` to see options. Passing `--config` will gener
 For your convenience I have created an example cronfile that can be installed simply by executing `crontab cron_example` in the script directory. The paths assume that the script is in ~carlerik/src/studweb
 
 ## University of Oslo
-I have pre-configured 
+See [installation](#uio-users) section above where a pre-configured script is described.
 
 # Mail
-You can generate an example config with relevant values for sending mail by executing `python studweb --config --mail` the first time the script is run. 
+You can generate an example config with relevant values for sending mail by executing `python studweb --config --mail` the first time the script is run. That way you don't have to rely on cron for sending email and the emails will have nicer subject fields such as `New results have been found` instad of `Cron <myuser@smaragd> ~carlerik/src/studweb/cronscript.sh`
 
 ## University of Oslo
 For the UiO smtp server the username and password are the same as your regular authentication values and the server is called `smtp.uio.no`
