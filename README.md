@@ -98,3 +98,20 @@ For the UiO smtp server the username and password are the same as your regular a
 
 ## Python 2.6.7 (Ubuntu 14.04)
 - There is an issue with smtplib where it hangs when calling `smtplib.SMTP_SSL()`, causing it to timeout.
+
+# Contributing
+
+All contributions are welcome, as I expect regular maintenance will be a necessity. Only two rules:
+
+- all tests must pass after changes has been added
+- new features/changes must have tests
+
+This means changes to old code must have regression tests, and new tests for any new code. You can run tests like this:
+ 
+```
+PYTHONPATH=.. python parsing_tests.py # when running them from the test/ directory
+```
+# Last checked to work against Studweb
+ 
+ - NTNU: December 2014
+ - UIO: June 2014

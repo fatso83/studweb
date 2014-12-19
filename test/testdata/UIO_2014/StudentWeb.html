@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<meta name="generator" content="WebObjects 5.4.3">
+		<meta name="robots" content="noindex,nofollow">
+		<title>StudentWeb</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<link href='/WebObjects/studentweb2.woa/Contents/WebServerResources/sw_base.css' rel="stylesheet" type="text/css">
+		<!--[if lte IE 7]>
+		<link href='/WebObjects/studentweb2.woa/Contents/WebServerResources/sw_ie7.css' rel="stylesheet" type="text/css">
+		<![endif]-->
+		<style type="text/css">
+			td.h-line { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/h_line.gif'); background-repeat: repeat-x; background-position: right top; }
+			td.v-line { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/v_line.gif'); background-repeat: repeat-y; background-position: right top; }
+			td.right-down-curve { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/right_down_curve.gif'); background-repeat: no-repeat; background-position: right top; height: 21px; }
+			td.top-left-curve { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/top_left_curve.gif'); background-repeat: no-repeat; background-position: right top; }
+            td.t-cross { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/t_cross.gif'); background-repeat: no-repeat; background-position: right top; height: 21px; }
+			td.leaf-end { background-image: url('/WebObjects/studentweb2.woa/Contents/WebServerResources/leaf_end.gif'); background-repeat: no-repeat; background-position: right top; }
+		</style>
+    </head>
+    <body onload="document.fnrForm.fodselsnr.focus()" onunload="document.fnrForm.fodselsnr.value=''">
+		<SCRIPT language=JavaScript type="text/javascript"><!-- Dynamic client side script from WebObjects
+function hjelp(inst, htype, skode, hkode, sprak, tjeneste, bredde, hoyde, sid) {
+var url='https://studweb.uio.no/as/WebObjects/studentweb2.woa/wa/hjelp?inst='+inst+'&htype='+htype+'&skode='+skode+'&hkode='+hkode+'&sprak='+sprak+'&tjeneste='+tjeneste+sid;
+var aux=window.open(url,null,'fullscreen=no,toolbar=no,status=no,menubar=no,scrollbars=yes,resizable=yes,directories=no,location=no,width='+bredde+',height='+hoyde);
+aux.focus();
+}
+
+//-->
+</SCRIPT>
+		<table width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+                <td rowspan="3" align="center" valign="bottom">
+					<img alt="logo" id="logo" src="/img/UiO_logo2.gif">&nbsp;
+                </td>
+                <td>&nbsp;</td>
+                <td align="right" width="100%" valign="bottom">
+					
+					<span id="super-title">Universitetet i Oslo - StudentWeb</span>
+				</td>
+            </tr>
+            <tr>
+                <td class="right-down-curve"><span class="profil"><img border="0" alt=" " src="/WebObjects/studentweb2.woa/Contents/WebServerResources/blank.gif" width="30" height="21"></span><span class="profil"></span></td>
+                <td class="h-line" id="tdh1">&nbsp;</td>
+            </tr>
+			<tr>
+				<td class="v-line" id="tdv1">&nbsp;</td>
+				<td rowspan="5" valign="top" class="main">
+					
+					<span id="alt-msg"></span>
+					
+<h1>Velkommen til StudentWeb ved Universitetet i Oslo</h1>
+	<p>Her får du tilgang til data om deg som student. Tjenesten krever at du identifiserer deg.
+<!--<br/><span style="color: #b22222">
+StudentWeb kan være litt ustabil på formiddagen mandag 29. august p.g.a. oppgradering.</span>-->
+
+<!--<br/><span style="color: #b22222">Onsdag 18. januar kl 21.30 blir det en kort nedetid på ca 5 minutter pga oppgradering</span>-->
+
+<!--<br/><span style="color: #b22222">StudentWeb vil være stengt fra midnatt til kl 9 fredag 11. januar.</span>-->
+
+<!--<br/><span style="color: #b22222">StudentWeb vil være nede fra kl 19 til kl 21 torsdag 16. februar.</span>--></p>
+		
+			<p>Her får du tilgang til data om deg som student. Tenesta krev at du identifiserer deg.<br/><!--<span style="color: #b22222">Fredag 22. november: StudentWeb vil være utilgjengeleg fra kl. 16 grunna oppgradering.</span>--></p>
+			
+			<p>This service will give you access to your student data. It is required that you identify yourself.<!--<br/><span style="color: #b22222">Friday 18 November: StudentWeb will be unavailable from 4 p.m.</span>--></p>
+		
+	
+	<table width="95%" border="0" cellspacing="0" cellpadding="0" class="layout">
+	
+		<tr><th width="34%">Logg inn med brukernavnet og passordet ditt<br/>
+Log in with your username and password</th>
+			<td class="login">
+				<form method="post" name="feideForm" action="/as/WebObjects/studentweb2.woa/wa/feideLogin"><input type=hidden name="fnromgjor"><input type=hidden value="0" name="javascript"><input type=hidden value="0" name="cookies"><input type=submit value="Logg inn med brukernavn og passord / Log in with your username and password" name="feideLogin"><input type=hidden name=WOSubmitAction value="feideLogin"><input type=hidden name="inst" value="UiO">
+</form>
+			</td>
+		</tr>
+		<script type="text/javascript">
+document.feideForm.javascript.value=screen.width+'x'+screen.height+':ws='+(typeof WebSocket);
+document.feideForm.cookies.value=navigator.cookieEnabled?1:0;
+		</script>
+	
+	
+		<tr><th><!--<span style="color: #b22222">Er du enkeltemnestudent må du logge på med fødselsnummer og PIN-kode</span><hr/>-->
+Logg inn med fødselsnummeret og PINkode<br/>
+Log in using your 11-digit ID and PIN
+
+</th>
+			<td class="login" nowrap><form method="post" name="fnrForm" autocomplete="off" action="/as/WebObjects/studentweb2.woa/wa/login">
+				Fødselsnummer:<input class="fnrPin w12dig" autofocus="autofocus" maxlength="12" type=text name="fodselsnr">
+				PIN-kode:<input class="fnrPin w4dig" maxlength="4" pattern="[0-9]*" type=password name="pinkode"> <input type=hidden name="fnromgjor"><input type=hidden value="37824739" name="transnr"><input type=hidden value="0" name="javascript"><input type=hidden value="0" name="cookies"><input onclick="this.disabled=true;this.form.submit();" type=submit value="Logg inn" name="login"><input type=hidden name=WOSubmitAction value="login"><br>&nbsp;<br><input title="Sender deg PIN-kode med e-post" type=submit value="Send PIN-kode med e-post" name="pinmail"><input type=hidden name=WOSubmitAction value="pinmail">
+				<input type=hidden name="inst" value="UiO">
+</form>
+			</td>
+		</tr>
+		<script type="text/javascript">
+document.fnrForm.javascript.value=screen.width+'x'+screen.height+':ws='+(typeof WebSocket);
+document.fnrForm.cookies.value=navigator.cookieEnabled?1:0;
+if (screen.width<800) document.fnrForm.fodselsnr.pattern='[0-9]*';
+		</script>
+	
+</table>
+
+				</td>
+            </tr>
+			<tr>
+				<td class="h-line" id="tdh2">&nbsp;</td>
+				<td class="t-cross"><span class="profil"><img border="0" alt=" " src="/WebObjects/studentweb2.woa/Contents/WebServerResources/blank.gif" width="30" height="21"></span><span class="profil"></span></td>
+			</tr>
+			<tr>
+				<td id="navig-menu">
+					
+						<span class="navig-flip"><img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Skjul meny</span>
+    					<br>&nbsp;<div id="user-info-box">- ikke innlogget -</div><br>
+						<table cellspacing="0" cellpadding="0">
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Logg ut
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Startside
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Registrer deg
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Karakterutskrift
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Se opplysninger om deg
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Betaling
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr>
+								<td class="mlevel0">
+									<img alt="[ ]" src="/WebObjects/studentweb2.woa/Contents/WebServerResources/bullet.gif" width="13" height="13">&nbsp;Bytte PIN-kode
+								</td>
+								<td></td>
+							</tr>
+							
+						
+						</table><br>
+					
+					
+
+				</td>
+				<td class="v-line" id="tdv2">&nbsp;</td>
+			</tr>
+			<tr>
+				<td class="h-line" id="tdh3">&nbsp;</td>
+				<td class="top-left-curve"><span class="profil"><img border="0" alt=" " src="/WebObjects/studentweb2.woa/Contents/WebServerResources/blank.gif" width="30" height="21"></span><span class="profil"></span></td>
+			</tr>
+			<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td class="right-down-curve"><span class="profil"><img border="0" alt=" " src="/WebObjects/studentweb2.woa/Contents/WebServerResources/blank.gif" width="30" height="21"></span><span class="profil"></span></td>
+				<td class="h-line" id="tdh4">&nbsp;</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td class="leaf-end"><span class="profil"><img border="0" alt=" " src="/WebObjects/studentweb2.woa/Contents/WebServerResources/blank.gif" width="30" height="35"></span><span class="profil"></span></td>
+				<td class="footer" align="left" valign="top">
+					<span class="appl">studentweb2 v7.6.01 31.10.2014 - 3</span>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
