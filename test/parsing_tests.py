@@ -3,7 +3,7 @@
 # Tests for studweb - testdata held back for privacy reasons ...
 # Carl-Erik Kopseng <carlerik@ifi.uio.no>
 ################################################################################
-import unittest, re, codecs;
+import unittest, re, codecs
 from studweb import * 
 import studweb
 
@@ -18,49 +18,60 @@ class TestResultPageParser(unittest.TestCase):
 
     def test_parses_returns_expected_result_set_for_uio2013(self):
         with codecs.open('testdata/v2013_uio.html', 'r', encoding='utf-8') as f:
-            html = f.read();
+            html = f.read()
 
-        parser = ResultPageParser('Semester')
-        result_set = parser.parse(html)
+        parser = studweb.get_parser('studweb.uio.no')
+        result_set = parser.parse_result_page_for_results(html)
         expected_set = result_set_uio_v13()
 
-        diff = (expected_set.difference(result_set));
+        diff = (expected_set.difference(result_set))
         self.assertEqual(diff, set())
 
     def test_can_parse_ntnu2014(self):
         with codecs.open('testdata/NTNU_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
-            html = f.read();
+            html = f.read()
 
-        parser = ResultPageParser('Termin')
-        result_set = parser.parse(html)
+        parser = studweb.get_parser('studweb.ntnu.no')
+        result_set = parser.parse_result_page_for_results(html)
 
         self.assertEqual(len(result_set), 55)
 
     def test_can_parse_uio2014(self):
         with codecs.open('testdata/UIO_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
-            html = f.read();
+            html = f.read()
 
-        parser = ResultPageParser('Semester')
-        result_set = parser.parse(html)
+        parser = studweb.get_parser('studweb.uio.no')
+        result_set = parser.parse_result_page_for_results(html)
 
         self.assertEqual(len(result_set), 7)
+
+    def test_parse_page_with_expanded_link_section_for_logout_url(self):
+        expected = "/as/WebObjects/studentweb2.woa/wo/3.0.23.24.6.0.1.1"
+
+        with codecs.open('testdata/UIO_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
+        # with codecs.open('/Users/carl-erik.kopseng/.studweb.latest_error.html', 'r', encoding='utf-8', errors='ignore') as f:
+            html = f.read()
+
+        parser = studweb.get_parser('studweb.uio.no')
+        link = parser.parse_page_with_expanded_link_section_for_logout_url(html)
+
+        self.assertTrue(expected in link)
 
 class TestStudWeb(unittest.TestCase):
 
     def test_url_to_result_page_NTNU(self):
-        studweb.info_string = "Resultater"
         host = 'studweb.ntnu.no'
         uri_path = '/cgi-bin/WebObjects/studentweb2.woa/wo/6.0.23.24.6.16.1.1'
         dir = 'NTNU_2014'
 
-        url_to_result_page(self,host,uri_path,dir)
+        url_to_result_page(self, host, uri_path, dir)
 
     def test_url_to_result_page_UIO(self):
         host = 'studweb.uio.no'
         uri_path = '/as/WebObjects/studentweb2.woa/wo/3.0.23.24.6.12.1.1'
         dir = 'UIO_2014'
 
-        url_to_result_page(self,host,uri_path,dir)
+        url_to_result_page(self, host, uri_path, dir)
 
 
     def test_diff_returns_new_results(self):
@@ -124,22 +135,13 @@ def result_set_uio_v13():
 
 def url_to_result_page(self, host, uri_path, dir):
 
-    studweb.studweb = 'https://' + host
-
     with codecs.open('testdata/' + dir + '/Startside Opplysninger.html', 'r', encoding='utf-8', errors='ignore') as f:
         html = f.read()
 
-    class DummySession(object):
-        def get(self, url):
-            return DummyRequest()
-    class DummyRequest():
-        content = html
+    parser = studweb.get_parser(host)
+    found_url = parser.parse_page_with_expanded_link_section_for_results_url(html)
 
-    foundUrl = studweb.get_url_to_result_page(DummySession(), html)
-
-    self.assertEqual(foundUrl, studweb.studweb + uri_path)
-
-
+    self.assertTrue(uri_path in found_url)
 
 
 if __name__ == "__main__":    
