@@ -408,6 +408,8 @@ def read_config():
         config = {}
         fp = open(settings_file, 'r')
         for l in fp.readlines():
+            if len(l.strip()) == 0: continue
+
             k, v = [s.strip() for s in l.split("=")]
             config[k] = v
         fp.close()
