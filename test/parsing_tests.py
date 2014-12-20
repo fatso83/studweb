@@ -7,18 +7,20 @@ import unittest, re, codecs;
 from studweb import * 
 import studweb
 
-class TestStudweb(unittest.TestCase):
+class TestSubjectResult(unittest.TestCase):
 
     def test_results_are_equal(self):
         r1 = SubjectResult('inf101', 'beregningsorientert matematikk', 'A', 'V2014')
         r2 = SubjectResult('inf101', 'beregningsorientert matematikk', 'A', 'V2014')
         self.assertEqual(r1,r2)
 
+class TestResultPageParser(unittest.TestCase):
+
     def test_parses_returns_expected_result_set_for_uio2013(self):
         with codecs.open('testdata/v2013_uio.html', 'r', encoding='utf-8') as f:
             html = f.read();
 
-        parser = ResultParser('Semester')
+        parser = ResultPageParser('Semester')
         result_set = parser.parse(html)
         expected_set = result_set_uio_v13()
 
@@ -29,7 +31,7 @@ class TestStudweb(unittest.TestCase):
         with codecs.open('testdata/NTNU_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
             html = f.read();
 
-        parser = ResultParser('Termin')
+        parser = ResultPageParser('Termin')
         result_set = parser.parse(html)
 
         self.assertEqual(len(result_set), 55)
@@ -38,12 +40,30 @@ class TestStudweb(unittest.TestCase):
         with codecs.open('testdata/UIO_2014/Innsyn Vurderingsresultater.html', 'r', encoding='utf-8', errors='ignore') as f:
             html = f.read();
 
-        parser = ResultParser('Semester')
+        parser = ResultPageParser('Semester')
         result_set = parser.parse(html)
 
         self.assertEqual(len(result_set), 7)
 
-    def test_returns_new_results(self):
+class TestStudWeb(unittest.TestCase):
+
+    def test_url_to_result_page_NTNU(self):
+        studweb.info_string = "Resultater"
+        host = 'studweb.ntnu.no'
+        uri_path = '/cgi-bin/WebObjects/studentweb2.woa/wo/6.0.23.24.6.16.1.1'
+        dir = 'NTNU_2014'
+
+        url_to_result_page(self,host,uri_path,dir)
+
+    def test_url_to_result_page_UIO(self):
+        host = 'studweb.uio.no'
+        uri_path = '/as/WebObjects/studentweb2.woa/wo/3.0.23.24.6.12.1.1'
+        dir = 'UIO_2014'
+
+        url_to_result_page(self,host,uri_path,dir)
+
+
+    def test_diff_returns_new_results(self):
         old = set()
         new = set()
 
@@ -58,6 +78,7 @@ class TestStudweb(unittest.TestCase):
 
         self.assertEqual(studweb.diff(old, new), set([r1,r2]))
 
+
     def test_stores_results_in_dotfile(self):
         html = '<html>something</html>'
         studweb.store(html)
@@ -65,6 +86,23 @@ class TestStudweb(unittest.TestCase):
             content = f.read()
 
         self.assertEqual(content, html)
+
+    def test_regex_parsing(self):
+        text_and_img_in_a_tag = """
+        <td>
+            <a href="https://alink.com">
+                <img src="dummy.gif" >
+                Foo Some text Bar
+            </a>
+        </td>
+        """
+
+        soup = BeautifulSoup(text_and_img_in_a_tag)
+        links = soup.find_all(text=re.compile('Some text'))
+        href = links[0].parent['href']
+
+        self.assertEqual(href, 'https://alink.com')
+
 
     def tearDown(self):
         import os
@@ -75,7 +113,7 @@ class TestStudweb(unittest.TestCase):
 
 
 def result_set_uio_v13():
-    results = set();
+    results = set()
 
     results.add(SubjectResult('INF1820', u'Introduksjon til språk- og kommunikasjonsteknologi', 'Godkjent', u'Vår 2013'))
     results.add(SubjectResult('INF2810', u'Funksjonell programmering', 'Godkjent', u'Vår 2013'))
@@ -83,6 +121,26 @@ def result_set_uio_v13():
     results.add(SubjectResult('INF101', u'Grunnkurs i objektorientert programmering', 'B', u'Høst 2002'))
 
     return results
+
+def url_to_result_page(self, host, uri_path, dir):
+
+    studweb.studweb = 'https://' + host
+
+    with codecs.open('testdata/' + dir + '/Startside Opplysninger.html', 'r', encoding='utf-8', errors='ignore') as f:
+        html = f.read()
+
+    class DummySession(object):
+        def get(self, url):
+            return DummyRequest()
+    class DummyRequest():
+        content = html
+
+    foundUrl = studweb.get_url_to_result_page(DummySession(), html)
+
+    self.assertEqual(foundUrl, studweb.studweb + uri_path)
+
+
+
 
 if __name__ == "__main__":    
 

@@ -29,6 +29,8 @@ r = None        # Request object passed around
 parser = None
 latest_html = None
 
+info_string = 'Se opplysninger om deg'
+
 # The settings file
 home = expanduser("~")
 settings_file = home + '/.studweb.conf'
@@ -102,7 +104,7 @@ class SubjectResult:
         return u" ".join([s.__code, s.__name, s.__grade, s.__semester])
 
     # for comparison
-    def __eq__(s, o): 
+    def __eq__(s, o):
         return s.__code == o.__code \
                 and s.__grade == o.__grade \
                 and s.__semester == o.__semester
@@ -115,11 +117,11 @@ class SubjectResult:
         assert is_unicode_str(s)
         return s
 
-class ResultParser:
-    semesterTerm = None 
+class ResultPageParser:
+    semesterTerm = None
 
     def __init__(self, term):
-        self.semesterTerm = term 
+        self.semesterTerm = term
 
     def parse(self, html):
         assert html != None
@@ -140,8 +142,8 @@ class ResultParser:
         assert len(index_lookup.values()) == 4, 'Page layout has changed!'
 
         # only find rows with non-blank subject code
-        relevant_trs = [tr 
-                for tr in result_table.find_all('tr')[1:-2] #Skip the first row with headers 
+        relevant_trs = [tr
+                for tr in result_table.find_all('tr')[1:-2] #Skip the first row with headers
                 for i,c in enumerate(tr.children)
                 if i == index_lookup['Emnekode'] and c.text.strip()]
 
@@ -160,10 +162,10 @@ class ResultParser:
                         tmp['name'] = text
                     if i == index_lookup['Resultat']:
                         tmp['grade'] = text
-            try: 
+            try:
                 results.add( SubjectResult( \
                         tmp['code'], tmp['name'], tmp['grade'], tmp['semester'] ))
-            except KeyError as e: 
+            except KeyError as e:
                 print("feil skjedde")
                 print(e)
                 print(tr)
@@ -174,12 +176,12 @@ def is_unicode_str(s):
     if sys.version_info >= (3,0,0):
         # for Python 3
         return not isinstance(s, bytes)
-    else: 
+    else:
         # for Python 2 
         return isinstance(s, unicode)
 
 def init_session():
-    #user_agent = "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36" 
+    #user_agent = "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.110 Safari/537.36"
     #extra_headers = { 'User-Agent' : user_agent }
     #s.headers.update(extra_headers) 
     global r, s, studweb
@@ -192,7 +194,7 @@ def init_session():
     soup = BeautifulSoup(r.content)
 
     form = soup.select("form[name=fnrForm]")[0]
-    inputs = soup.select("form[name=fnrForm] input") 
+    inputs = soup.select("form[name=fnrForm] input")
 
     attributes = [i.attrs for i in inputs]
     form_values = {}
@@ -218,7 +220,7 @@ def init_session():
     return r
 
 def logout(html_page):
-    if not html_page: 
+    if not html_page:
         raise Exception("Missing legal string argument")
 
     soup = BeautifulSoup(html_page)
@@ -228,22 +230,24 @@ def logout(html_page):
 
     return s.get( logoutUrl )
 
-def get_url_to_result_page(start_page):
-    global r,s
+def get_url_to_result_page(session, start_page):
+
+    global info_string
 
     soup = BeautifulSoup(start_page)
-    link = soup.find_all('a',text=re.compile('Se opplysninger om deg'))
-    try: 
+    link = soup.find_all(text=re.compile(info_string))
+    try:
         check(link, "Failed logging in. Check the configuration settings at " + settings_file, soup.prettify())
     except Exception as e:
         # try to get the error message
         error_msg = soup.select("#alert-box ul li")
-        if error_msg: 
+        if error_msg:
             print_error("Caught error when trying to log in: \n" + error_msg[0].get_text())
             sys.exit(1)
         else: raise e
 
-    r = s.get(studweb + link[0]['href'])
+    href = link[0].parent['href']
+    r = session.get(href)
 
     soup = BeautifulSoup(r.content)
     link = soup.find_all("a", title="Se dine resultater")
@@ -264,7 +268,7 @@ def diff(old, new):
 
 def new_results():
     global parser
-    parser = ResultParser('Semester') # uio version, ntnu uses 'Termin'
+    parser = ResultPageParser('Semester') # uio version, ntnu uses 'Termin'
 
     return diff(old_results(), latest_results())
 
@@ -277,7 +281,7 @@ def old_results():
     return set()
 
 def latest_results():
-    global latest_html 
+    global latest_html
     latest_html = fetch_html()
     return parser.parse(latest_html)
 
@@ -289,13 +293,13 @@ def store(html):
 def fetch_html():
     global r, s
 
-    try: 
+    try:
         r = init_session()
         r = s.get(get_url_to_result_page(r.content))
         soup = BeautifulSoup(r.content)
         results_html = soup.prettify()
     finally:
-        try: 
+        try:
             r = logout(r.content)
         except:
             pass # we might not be logged in
@@ -312,9 +316,9 @@ def _print(s):
     assert is_unicode_str(s), "Not unicode: " + s
     if sys.version_info < (3,0,0):
         write = sys.stdout.write
-    else: 
+    else:
         write = sys.stdout.buffer.write
-    
+
     write((s + '\n').encode('utf-8'))
 
 def print_error(s):
@@ -338,7 +342,7 @@ def read_config():
 def write_example_config(include_mail_config):
     fp = open(settings_file, 'w')
     fp.write(example_config)
-    if include_mail_config: 
+    if include_mail_config:
             fp.write(example_mail_config)
     fp.close()
 
