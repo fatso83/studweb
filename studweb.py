@@ -354,11 +354,12 @@ def latest_results(parser):
 
 def find_bulleted_link(html, text_to_match):
     soup = BeautifulSoup(html)
-    link = soup.find_all(text=re.compile(text_to_match))
 
-    check(link, 'Did not find "' + text_to_match + '".', html)
+    a = soup.find(lambda tag: tag.name == 'a' and tag.has_attr('href') and text_to_match in tag.text)
 
-    return link[0].parent['href']
+    check(a, 'Did not find "' + text_to_match + '".', html)
+
+    return a['href']
 
 
 def store(html):

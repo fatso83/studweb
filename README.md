@@ -91,6 +91,7 @@ For the UiO smtp server the username and password are the same as your regular a
 # Tested environments found to be working
 - Python 2.7.6 (OS X, 10.9.3)
 - Python 2.7.7 (Red Hat Enterprise Linux 5.10 - the version running at smaragd.ifi.uio.no)
+- Python 2.7.8 (Ubuntu 14.10)
 - Python 3.4.0 (OS X, 10.9.3)
 - Python 3.4.0 (Ubuntu 14.04 LTS)
 

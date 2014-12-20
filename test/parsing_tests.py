@@ -109,8 +109,8 @@ class TestStudWeb(unittest.TestCase):
         """
 
         soup = BeautifulSoup(text_and_img_in_a_tag)
-        links = soup.find_all(text=re.compile('Some text'))
-        href = links[0].parent['href']
+        a = soup.find(lambda tag: tag.name == 'a' and tag.has_attr('href') and 'Some text' in tag.text)
+        href = a['href']
 
         self.assertEqual(href, 'https://alink.com')
 
